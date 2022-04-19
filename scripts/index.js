@@ -2,6 +2,7 @@
 
 var jsstoreCon = new JsStore.Connection();
 
+var confirmImportSuccessfull = 'Não feche esta página (X). \nNão atualize esta página (F5). \n\nVolte na página anterior (aba ao lado) e pesquise pela palavra "configuração concluída com sucesso." \n\nQuando a palavra aparecer, a configuração terminou com sucesso.';
 window.onload = function () {
 	refreshTableData();
     registerEvents();
@@ -13,20 +14,35 @@ window.onload = function () {
 	localStorage.setItem('valueComplete', 'true');
 	localStorage.setItem('valueVideoPlay', 'true');
 	localStorage.setItem('valueLogoBig', 'true');
-	localStorage.getItem('valueText', '');
+	localStorage.setItem('valueText', '');
 	setCookie('valueText', '', '1');
+/*	localStorage.setItem('valueMyowner', 'hope');
+	localStorage.setItem('valueLogoHeightBig', '40%');
+	localStorage.setItem('valueLogoHeightMini', '15%');
+	localStorage.setItem('valueLogoLeftBigTela1', '15%');
+	localStorage.setItem('valueLogoLeftBigTela2', '30%');
+	localStorage.setItem('valueLogoLeftMini', '0px');
+*/
+	localStorage.setItem('valueMyowner', 'iirf');
+	localStorage.setItem('valueLogoHeightBig', '60%');
+	localStorage.setItem('valueLogoHeightMini', '25%');
+	localStorage.setItem('valueLogoLeftBigTela1', '30%');
+	localStorage.setItem('valueLogoLeftBigTela2', '30%');
+	localStorage.setItem('valueLogoLeftMini', '0px');
 };
 
 async function initDb() {
     var isDbCreated = await jsstoreCon.initDb(getDbSchema());
     if (isDbCreated) {
         console.log('db created');
-		document.getElementById('txtSearch').value = 'created';
+		document.getElementById('txtSearch').value = 'configuracao concluida com sucesso';
+		$('#tblGrid tbody').html('1. Como confirmar o final da configuração? <br/><br/>2. Pesquise a palavra <b>"configuração concluída com sucesso"</b> (somente aqui nesta página). <br/><br/>3. Quando o texto aparecer, a configuração terminou com sucesso. <br/><br/>4. Clique no botão Configurar. <br/>v07.04.22.21.07');
+		document.getElementById('divconfig').style.display = 'block';
     }
     else {
         console.log('db opened');
 //		document.getElementById('txtSearch').value = 'opened';
-    }
+     }
 }
 
 function getDbSchema() {
@@ -59,6 +75,7 @@ function getDbSchema() {
             camporeserva1: { notNull: false, dataType: 'string' },
             camporeserva2: { notNull: false, dataType: 'string' },
             camporeserva3: { notNull: false, dataType: 'string' }
+//			mycodeMyorder:{keyPath:['mycode','myorder']}
         }
     }
 	
@@ -91,6 +108,7 @@ function getDbSchema() {
             camporeserva1: { notNull: false, dataType: 'string' },
             camporeserva2: { notNull: false, dataType: 'string' },
             camporeserva3: { notNull: false, dataType: 'string' }
+//			mycodeMyorder:{keyPath:['mycode','myorder']}
         }
     }
 
@@ -123,7 +141,8 @@ function getDbSchema() {
             camporeserva1: { notNull: false, dataType: 'string' },
             camporeserva2: { notNull: false, dataType: 'string' },
             camporeserva3: { notNull: false, dataType: 'string' }
-        }
+//			mycodeMyorder:{keyPath:['mycode','myorder']}
+ }
     }
 
 	var tableTypeData = {
@@ -142,6 +161,8 @@ function getDbSchema() {
     }
     return db;
 }
+
+
 
 function registerEvents() {
     $('#btnSelectCountAll').click(function () {
@@ -179,28 +200,22 @@ function registerEvents() {
 //		freezeDataShow(true);
 		$('#txtSearch').focus();
 		$('#txtSearch').select();
+		document.getElementById('btnIndexConfigurar').style.display='none';
     })
 
     $('#selMycodeTextGroup').change(function () {
+		freezeDataShow(true);
 		var selectedIndex = document.getElementById('selMycodeTextGroup').selectedIndex;
 		localStorage.setItem('valueArt', selectedIndex);
-		freezeDataShow(true);
-		if (document.getElementById('txtSearch').value.length <= 1) { // pesquisa somente com mais de 1 caracter preenchido no campo search
-			if (selectedIndex == '1') {
-				showBible();
-			} else if (selectedIndex == '0' || selectedIndex == '2') {
-				document.getElementById('txtSearch').value = 'favoritos iirf';
-				refreshTableData();
-				showGridAndHideForms();
-			}
+		if (selectedIndex == '1') { //bíblia
+			showBible();
+		} else if (selectedIndex == '2') { //imagem e vídeo
+			document.getElementById('txtSearch').value = 'favoritos datashow';
+			refreshTableData();
+			showGridAndHideForms();
 		} else {
-			if (selectedIndex == '1') {
-				document.getElementById('txtSearch').value = '';
-				showBible();
-			} else {
-				refreshTableData();
-				showGridAndHideForms();
-			}
+			refreshTableData();
+			showGridAndHideForms();
 		}
 		$('#txtSearch').focus();
 		$('#txtSearch').select();
@@ -217,6 +232,10 @@ function registerEvents() {
     $('#btnDropDb').click(function () {
 		dropdb();
     })
+    $('#btnImportArt').click(function () {
+		document.getElementById('selMycodeTextGroup').selectedIndex = 2;
+		openFile(dispFile);
+    })
     $('#btnImport').click(function () {
 		document.getElementById('selMycodeTextGroup').selectedIndex = 0;
 		openFile(dispFile);
@@ -225,12 +244,26 @@ function registerEvents() {
 		document.getElementById('selMycodeTextGroup').selectedIndex = 1;
 		openFile(dispFile);
     })
-    $('#btnImportArt').click(function () {
-		document.getElementById('selMycodeTextGroup').selectedIndex = 2;
-		openFile(dispFile);
-    })
     $('#btnConfirmImport').click(function () {
-		confirmImport();
+		var result = confirm('Não feche esta página (X). \nNão atualize esta página (F5).');
+		if (result) {
+			confirmImport('contents');
+			alert(confirmImportSuccessfull);
+		}
+    })
+    $('#btnConfigForward').click(function () {
+		var result = confirm('Confirma configuração automática? \n\nNão faça nada. Aguarde alguns segundos...');
+		if (result) {
+			document.getElementById('selMycodeTextGroup').selectedIndex = 1;
+			confirmImport('contents2'); //bíblia
+			document.getElementById('selMycodeTextGroup').selectedIndex = 2;
+			confirmImport('contents3'); //artes
+			document.getElementById('selMycodeTextGroup').selectedIndex = 0;
+			confirmImport('contents1'); //a última frase é testada na pesquisa de letras
+			alert(confirmImportSuccessfull);
+		} else {
+			alert('Configuração cancelada.');
+		}
     })
     $('#btnCancelImport').click(function () {
 		showGridAndHideForms();
@@ -252,6 +285,13 @@ function registerEvents() {
     })
     $('#btnShowStudent').click(function () {
         showForm1Form2();
+		showGridAndHideForms();
+    })
+    $('#btnShowHelpTour').click(function () {
+		var DataShow_Help = window.open("help/helptour.pdf", "datashowhelp", "top=100, width=1100, height=10000, left=0, location=no, menubar=no, resizable=no, scrollbars=no, status=no, titlebar=no, toolbar=no");
+    })
+    $('#btnShowHelpConfig').click(function () {
+		var DataShow_Help = window.open("help/helpconfig.pdf", "datashowhelp", "top=100, width=1100, height=10000, left=0, location=no, menubar=no, resizable=no, scrollbars=no, status=no, titlebar=no, toolbar=no");
     })
     $('#tblGrid tbody').on('click', '.edit', function () {
 		var row = $(this).parents().eq(1);
@@ -276,7 +316,7 @@ function registerEvents() {
         if (studentId) {
 			updateStudent(group);
         } else {
-            addStudent(group);
+            addStudentImport(group);
         }
     });
     $('#tblGrid tbody').on('click', '.freeze', function () {
@@ -292,9 +332,15 @@ function registerEvents() {
 		videoPlayPause();
     });
 	$('#btnGear').click(function () {
-		showFormGear();
+		if (document.getElementById('divGear').style.display == 'none') {
+			showFormGear();
+		} else {
+			showGridAndHideForms();
+		}
     })
 }
+
+
 
 //This function select liryc
 async function getFromTable(id, code, order) {
@@ -334,7 +380,12 @@ async function getFromTable(id, code, order) {
 		$('#mytext').val(student.mytext);
 		$('#mycodeTextGroup').val(student.mycodeTextGroup);
 		$('#myrepeated').val(student.myrepeated);
-		$('#myowner').val(student.myowner);
+		if (student.myowner.toLowerCase() == '') {
+//			$('#myowner').val('iirf');
+			$('#myowner').val('hopé');
+		} else {
+			$('#myowner').val(student.myowner);
+		}
 	})
 }
 
@@ -413,15 +464,15 @@ function showLogo() {
 	}
 	
 	if (localStorage.getItem('valueLogoBig') == 'true') {
-		document.getElementById('btnLogoTop').innerHTML = 'Logo Pequeno';
+		document.getElementById('btnLogoTop').innerHTML = '<i class="fa fa-minus"></i> Logo';
 		document.getElementById('btnLogoTop').classList.remove('btn-default');
 		document.getElementById('btnLogoTop').classList.add('btn-success');
 	} else if (localStorage.getItem('valueLogoBig') == 'false') {
-		document.getElementById('btnLogoTop').innerHTML = '<i class="fa fa-times"></i> Logo Invisível';
+		document.getElementById('btnLogoTop').innerHTML = '<i class="fa fa-times"></i> Logo';
 		document.getElementById('btnLogoTop').classList.remove('btn-success');
 		document.getElementById('btnLogoTop').classList.add('btn-default');
 	} else if (localStorage.getItem('valueLogoBig') == '') {
-		document.getElementById('btnLogoTop').innerHTML = '<i class=\"fa fa-plus\"></i> Logo Grande';
+		document.getElementById('btnLogoTop').innerHTML = '<i class=\"fa fa-plus\"></i> Logo';
 		document.getElementById('btnLogoTop').classList.remove('btn-success');
 		document.getElementById('btnLogoTop').classList.add('btn-default');
 	}
@@ -433,16 +484,16 @@ async function freezeDataShow(aovivo) {
 		if (aovivo == 'false') { //unfreeze DataShow
 			localStorage.setItem('valueAoVivo', 'true');
 			if (document.getElementById('btnFreezeTop') != null) {
-				document.getElementById('btnFreezeTop').innerHTML = '<i class="fa fa-lock"></i> Congelar';
-				document.getElementById('btnFreezeTop').classList.remove('btn-info');
-				document.getElementById('btnFreezeTop').classList.add('btn-default');
+				document.getElementById('btnFreezeTop').innerHTML = '<i class="fa fa-lock"></i> Congela';
+//				document.getElementById('btnFreezeTop').classList.remove('btn-info');
+//				document.getElementById('btnFreezeTop').classList.add('btn-default');
 			}
 		} else { //freeze DataShow
 			localStorage.setItem('valueAoVivo', 'false');
 			if (document.getElementById('btnFreezeTop') != null) {
-				document.getElementById('btnFreezeTop').innerHTML = '<i class="fa fa-times"></i> Descongelar';
-				document.getElementById('btnFreezeTop').classList.remove('btn-default');
-				document.getElementById('btnFreezeTop').classList.add('btn-info');
+				document.getElementById('btnFreezeTop').innerHTML = '<i class="fa fa-times"></i> Descongela';
+//				document.getElementById('btnFreezeTop').classList.remove('btn-default');
+//				document.getElementById('btnFreezeTop').classList.add('btn-info');
 			}
 		}
     } catch (ex) {
@@ -455,13 +506,13 @@ async function searchComplete() {
     try {
 		if (localStorage.getItem('valueComplete') == 'true') {
 			localStorage.setItem('valueComplete', 'false');
-			document.getElementById('btnCompleteTop').innerHTML = 'Letra Simples';
+			document.getElementById('btnCompleteTop').innerHTML = '<i class=\"fa fa-minus\"></i>';
 			refreshTableData();
 //			document.getElementById('btnCompleteTop').classList.remove('btn-warning');
 //			document.getElementById('btnCompleteTop').classList.add('btn-default');
 		} else {
 			localStorage.setItem('valueComplete', 'true');
-			document.getElementById('btnCompleteTop').innerHTML = '<i class=\"fa fa-list\"></i> Letra Completa';
+			document.getElementById('btnCompleteTop').innerHTML = '<i class=\"fa fa-list\"></i>';
 			refreshTableData();
 //			document.getElementById('btnCompleteTop').classList.remove('btn-default');
 //			document.getElementById('btnCompleteTop').classList.add('btn-warning');
@@ -477,14 +528,14 @@ async function videoPlayPause() {
 		if (localStorage.getItem('valueVideoPlay') == 'true') {
 			localStorage.setItem('valueVideoPlay', 'false');
 			document.cookie="valueVideoPlay=false; expires=Thu, 24 Jun 2050 12:00:00 GMT";
-			document.getElementById('btnVideoPlayTop').innerHTML = '<i class="fa fa-play"></i> Vídeo';
+			document.getElementById('btnVideoPlayTop').innerHTML = '<i class="fa fa-play"></i>';
 			document.getElementById('btnVideoPlayTop').classList.remove('btn-default');
 			document.getElementById('btnVideoPlayTop').classList.add('btn-info');
 //			localStorage.setItem('valueFullScreen', 'true');
 		} else {
 			localStorage.setItem('valueVideoPlay', 'true');
 			document.cookie="valueVideoPlay=true; expires=Thu, 24 Jun 2050 12:00:00 GMT";
-			document.getElementById('btnVideoPlayTop').innerHTML = '<i class=\"fa fa-pause\"></i> Vídeo';
+			document.getElementById('btnVideoPlayTop').innerHTML = '<i class=\"fa fa-pause\"></i>';
 			document.getElementById('btnVideoPlayTop').classList.remove('btn-info');
 			document.getElementById('btnVideoPlayTop').classList.add('btn-default');
 		}
@@ -503,12 +554,13 @@ async function searchSimples() {
     }
 }
 
+
 //This function confirm import
-async function confirmImport() {
-	var result = confirm('Não feche esta janela. \nNão atualize esta janela. \n\nO DataShow está preparando a importação para você.');
-	if (result) {
+async function confirmImport(contents) {
+//	var result = confirm('Não feche esta página. \nNão atualize esta página.');
+//	if (result) {
 		try {
-			valor = document.getElementById('contents').value;
+			valor = document.getElementById(contents).value;
 			var nextpos = 0; var myorder = 0; var mycode = ''; var myrepeated = '0'; var contador = 0; var posicao = 0; repeated = 0;
 			for (posicao=0; posicao<=valor.length; posicao++) {
 				nextpos = valor.indexOf('\n\n', posicao); //próximo separador do texto correspondente a duas quebras de linhas juntas
@@ -517,25 +569,29 @@ async function confirmImport() {
 				}
 				if (valor.substring(posicao, posicao+3) == '<p>' || valor.substring(posicao, posicao+4) == '<br>' || valor.substring(posicao, posicao+4) == '<hr>') {
 					posicao = posicao+4; //pula <p>\n
-					mycode = removeSpecials(valor.substring(posicao, nextpos));
+					mycode = removeSpecials(valor.substring(posicao, nextpos).trim());
 					myorder = 0;
 					contador = parseInt(contador) + 1;
 					console.log('Importar: \n' + mycode);
 					document.getElementById('txtSearch').value = parseInt(contador) + ' importados';
 				} else if (posicao == 0) { //primeiro registro sem separador <p>... executa somente 1 vez.
-					mycode = removeSpecials(valor.substring(posicao, nextpos));
+					mycode = removeSpecials(valor.substring(posicao, nextpos).trim());
 				}
-//				repeated = valor.substring(posicao, nextpos).indexOf('<r>', 0); //próximo separador do texto correspondente a duas quebras de linhas juntas
-//				alert(repeated);
-//				if (repeated != 0) {
-//					myrepeated = valor.substring(posicao+3, nextpos);
-//				}
-				
-				var mytext = valor.substring(posicao, nextpos);
-				var mycodeTextGroup = document.getElementById('selMycodeTextGroup').value;
-				//alert('mycode='+mycode + ' myorder='+myorder + ' mycodeTextGroup='+mycodeTextGroup + ' myrepeated='+myrepeated + ' mytext='+mytext);
-				setStudentFromImport(mycode, myorder, mytext, mycodeTextGroup, myrepeated);
-				addStudentImport(contador, mycodeTextGroup);
+/*
+				myrepeated = valor.substring(posicao, nextpos).indexOf('<repeat>', 0); //próximo separador do texto correspondente a duas quebras de linhas juntas
+				alert(myrepeated);
+				if (myrepeated > 0) {
+					valor = valor.replaceAll('<repeat>', '');
+					myrepeated = '1';
+				} else {
+					myrepeated = '1';
+				}
+*/
+				var mytext = valor.substring(posicao, nextpos).trim();
+				var group = document.getElementById('selMycodeTextGroup').value.trim();
+				//alert('mycode='+mycode + ' myorder='+myorder + ' group='+group + ' myrepeated='+myrepeated + ' mytext='+mytext);
+				setStudentFromImport(mycode, myorder, mytext, group, myrepeated);
+				addStudentImport(group);
 
 				setTimeout(() => { refreshTableData() }, 500); // Executa novamente a cada 500 milisegundos
 				
@@ -550,11 +606,10 @@ async function confirmImport() {
 			document.getElementById('divcontent').style.display='none';
 			$('#txtSearch').focus();
 			$('#txtSearch').select();
-			alert('Aguarde uns 20 minutos, antes de fechar ou atualizar esta janela. \n\nO DataShow está organizando tudo para você... \n\nEquipe DataShow \nenio.francisco@gmail.com \n11 95239-2000 \n\nMédia de registros na primeira instalação: 32225=bíblia 10663=letras 19=imagem e vídeo');
 		} catch (ex) {
 			alert('erro \n\n\n' + ex.message + '\n\n\n' + mytext);
 		}
-	}
+//	}
 }
 
 //This function refreshes the table
@@ -579,7 +634,7 @@ async function refreshTableData() {
 				  }
 				  , groupBy: "mycode"
 				});
-			} else { //letra simples
+			} else { //Letra Sem Repetição
 				var students = await jsstoreCon.select({
 					from: 'Student'
 				  , where: { mysearch: {like: '%' + search + '%'} 
@@ -638,7 +693,7 @@ async function refreshTableData() {
 						by: 'myorder'
 					}]
 				});
-			} else { //letra simples
+			} else { //Letra Sem Repetição
 				var students = await jsstoreCon.select({
 					from: 'Student'
 					, where: {
@@ -709,64 +764,62 @@ async function refreshTableData() {
 		students.forEach(function (student) {
             if (student.myorder == '000') {
 				htmlString += "<tr><td></td><td></td>"
-				htmlString += "<td>"
+				htmlString += "<td nowrap>"
 
 				if (localStorage.getItem('valueLogoBig') == 'true') {
-					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\">Logo Pequeno</button></a>"
+					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\"><i class=\"fa fa-minus\"></i> Logo</button></a>"
 				} else if (localStorage.getItem('valueLogoBig') == 'false') {
-					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\"><i class=\"fa fa-times\"></i> Logo Invisível</button></a>"
+					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\"><i class=\"fa fa-times\"></i> Logo</button></a>"
 				} else if (localStorage.getItem('valueLogoBig') == '') {
-					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\"><i class=\"fa fa-plus\"></i> Logo Grande</button></a>"
+					htmlString += "<a href='#' class='logo'><button id=\"btnLogoTop\" class=\"btn btn-success\"><i class=\"fa fa-plus\"></i> Logo</button></a>"
 				}
 
 				if (localStorage.getItem('valueAoVivo') == 'true') {
-					htmlString += "&nbsp;<a href='#' class='freeze'><button id=\"btnFreezeTop\" class=\"btn btn-info\"><i class=\"fa fa-lock\"></i> Congelar</button></a>"
+					htmlString += "&nbsp;<a href='#' class='freeze'><button id=\"btnFreezeTop\" class=\"btn btn-info\"><i class=\"fa fa-lock\"></i> Congela</button></a>"
 				} else {
-					htmlString += "&nbsp;<a href='#' class='freeze'><button id=\"btnFreezeTop\" class=\"btn btn-info\"><i class=\"fa fa-times\"></i> Descongelar</button></a>"
+					htmlString += "&nbsp;<a href='#' class='freeze'><button id=\"btnFreezeTop\" class=\"btn btn-info\"><i class=\"fa fa-times\"></i> Descongela</button></a>"
 				}
 
 				if (localStorage.getItem('valueComplete') == 'true') {
-					htmlString += "&nbsp;<a href='#' class='complete'><button id=\"btnCompleteTop\" class=\"btn btn-default\">Letra Simples</button></a>"
+					htmlString += "&nbsp;<a href='#' class='complete'><button id=\"btnCompleteTop\" class=\"btn btn-default\"><i class=\"fa fa-minus\"></i></button></a>"
 				} else {
-					htmlString += "&nbsp;<a href='#' class='complete'><button id=\"btnCompleteTop\" class=\"btn btn-warning\"><i class=\"fa fa-list\"></i> Letra Completa</button></a>"
+					htmlString += "&nbsp;<a href='#' class='complete'><button id=\"btnCompleteTop\" class=\"btn btn-warning\"><i class=\"fa fa-list\"></i></button></a>"
 				}
 
 				if (localStorage.getItem('valueVideoPlay') == 'true') {
-					htmlString += "&nbsp;<a href='#' class='videoplaypause'><button id=\"btnVideoPlayTop\" class=\"btn btn-default\"><i class=\"fa fa-pause\"></i> Vídeo</button></a>"
+					htmlString += "&nbsp;<a href='#' class='videoplaypause'><button id=\"btnVideoPlayTop\" class=\"btn btn-default\"><i class=\"fa fa-pause\"></i></button></a>"
 				} else {
-					htmlString += "&nbsp;<a href='#' class='videoplaypause'><button id=\"btnVideoPlayTop\" class=\"btn btn-primary\"><i class=\"fa fa-play\"></i> Vídeo</button></a>"
+					htmlString += "&nbsp;<a href='#' class='videoplaypause'><button id=\"btnVideoPlayTop\" class=\"btn btn-primary\"><i class=\"fa fa-play\"></i></button></a>"
 				}
 
-				htmlString += "</td>"
-				htmlString += "<td></td><td></td><td></td><td></td>"
+				htmlString += "</td><td></td>"
 				htmlString += "</tr>"
 				varTdTh = 'th';
-				varOff = "<i class=\"fa fa-stop\" style=\"color:#000000;\"></i>";
+				varOff = "<i class=\"fa fa-stop\" style=\"color:#000000;\"></i>&nbsp;";
 				varFav = "<td> <!--i class=\"fa fa-heart\" style=\"color:#3333AA;\"></i --> </td>";
-				varEdit = "<td> <i class=\"fa fa-edit\" style=\"color:blue;\"></i> </td>";
-				varDel = "<td> <i class=\"fa fa-times\" style=\"color:red;\"></i> </td>";
+//				varEdit = "&nbsp;<i class=\"fa fa-edit\" style=\"color:blue;\"></i>";
+				varDel = "<td><a href=\"#\" class=\"delete\" style=\"color:#777777;\"> <i class=\"fa fa-times\" style=\"color:red;\"></i> </a></td>";
 			} else {
 				varTdTh = 'td';
-				varOff = "<a href='#' class='favorite' style=\"color:#000000;\">Off</a>";
-				varFav = "<td><a href='#' class='favorite' style=\"color:blue;\"> </a></td>";
-				varEdit = "<td><a href='#' class='edit' style=\"color:blue;\">Edit</a></td>";
-                varDel = "<td><a href='#' class='delete' style=\"color:#777777;\">Del</a></td>";
+				varOff = "<a href=\"#\" class=\"favorite\" style=\"color:#000000;\">Off</a>";
+				varFav = "<td><a href='#' class=\"favorite\" style=\"color:blue;\"> </a></td>";
+//				varEdit = "<a href=\"#\" class=\"edit\" style=\"color:blue;\">Edit</a>";
+                varDel = "<td><a href=\"#\" class=\"delete\" style=\"color:#777777;\">Del</a></td>";
 			}
+			varEdit = "<a href=\"#\" class=\"edit\" style=\"color:blue; font-size:25px;\">...</a>";
 			
 			var mytext = student.mytext;
 			var txtsearch = removeSpecials(document.getElementById('txtSearch').value);
+			
+			//destaca palavra pesquisada com negrito
 			var auxiliar = removeSpecials(mytext);
 			var posIni = auxiliar.toLowerCase().indexOf(txtsearch.toLowerCase(), 0);
 			var mytextBold = '';
-			
 			if (posIni >= 0) {
-
 				var diff = parseInt(mytext.substring(0, posIni+txtsearch.length).length) - parseInt(removeSpecials(mytext.substring(0, posIni+txtsearch.length)).length);
-				
 				posIni = posIni + parseInt(diff);
-
 				mytextBold = mytext.substring(0, posIni)
-				+ '<b style="background-color:#FFD700; color:green;">'
+				+ '<b style="background-color:#EEEEEE; color:green;">'
 				+ mytext.substring(posIni, posIni+txtsearch.length)
 				+ '</b>'
 				+ mytext.substring(posIni+txtsearch.length);
@@ -776,20 +829,19 @@ async function refreshTableData() {
 			
 			htmlString += "<tr ItemId=" + student.id + ">"
                 + "<td style=\"color:white; font-size:1px;\">" + student.mycode + "</td>"
-                + "<td style=\"color:black; font-size:8px;\">" + student.myorder + "</td>"
+                + "<td style=\"color:white; font-size:1px;\">" + student.myorder + "</td>"
 				+ "<" + varTdTh + " id=datashow" + student.id+"1" + " tabIndex=" + student.id+"1" + " onClick=\"datashow('" + student.id+"1" + "', 1, '" + student.mycode + "');\" onkeyup=\"moveCursor('" + student.mycode + "', 1, event, " + "" + (student.id+"1") + ");\" data-show='" + student.id+"1" + "'>" + mytextBold + "</" + varTdTh + ">"
-				//+ "<td>" + student.mysearch + "</td>"
+//				+ "<td>" + student.mysearch + "</td>"
 				+ "<td id=datashow" + (student.id+"2") + " tabIndex=" + (student.id+"2") + " onClick=\"datashow('" + (student.id+"2") + "', 1, '" + student.mycode + "');\" onkeyup=\"moveCursor('" + student.mycode + "', 1, event, " + "" + (student.id+"2") + ");\" data-show='" + (student.id+"2") + "'>" 
-				+ varOff + " </td>"
-//				+ "<td id=datashow" + (student.id+"3") + " tabIndex=" + (student.id+"3") + " onClick=\"datashow('" + (student.id+"3") + "', 1, '" + student.mycode + "');\" onkeyup=\"moveCursor('" + student.mycode + "', 1, event, " + "" + (student.id+"3") + ");\" data-show='" + (student.id+"3") + "'> </td>"
-				+ varFav
+//				+ varOff + " "
 				+ varEdit
-                + varDel;
+				+ " </td>";
+//				+ "<td id=datashow" + (student.id+"3") + " tabIndex=" + (student.id+"3") + " onClick=\"datashow('" + (student.id+"3") + "', 1, '" + student.mycode + "');\" onkeyup=\"moveCursor('" + student.mycode + "', 1, event, " + "" + (student.id+"3") + ");\" data-show='" + (student.id+"3") + "'> </td>"
 		})
 		if (htmlString.length > 0) {
 			htmlString += "</tr>"
 		} else {
-			htmlString += "<br><br><br><br><font color=blue>Não Encontrado <br><br>Pesquise Novamente </font>"
+			htmlString += "<br><br><br><br>Não Encontrado <br><br>Pesquise Novamente"
 		}
         $('#tblGrid tbody').html(htmlString);
     } catch (ex) {
@@ -823,7 +875,7 @@ async function selectCountAll() {
     }
 }
 
-async function addStudentImport(contador, group) {
+async function addStudentImport(group) {
     var student = getStudentFromForm();
     try {
         if (group == '0') { //liryc
@@ -858,10 +910,10 @@ async function addStudentImport(contador, group) {
     }
 }
 
+/*
 async function addStudent(group) {
     var student = getStudentFromForm();
     try {
-//        if (group == '0' || group == '3') { //liryc
         if (group == '0') { //liryc
 			var noOfDataInserted = await jsstoreCon.insert({
 				into: 'Student',
@@ -893,11 +945,12 @@ async function addStudent(group) {
         alert(ex.message);
     }
 }
+*/
 
 async function updateStudent(group) {
     var student = getStudentFromForm();
 	try {
-//        if (group == '0' || group == '3') { //smente letras, letra simples
+//        if (group == '0' || group == '3') { //smente letras, Letra Sem Repetição
         if (group == '0') { //somente letras
 			var noOfDataUpdated = await jsstoreCon.update({
 				in: 'Student',
@@ -996,7 +1049,9 @@ function getStudentFromForm() {
         mytext: $('#mytext').val(),
         mysearch: removeSpecials($('#mytext').val()),
         mycodeTextGroup: $('#selMycodeTextGroup').val(),
-        myrepeated: $('#myrepeated').val()
+        myrepeated: $('#myrepeated').val(),
+		myowner: 'iirf'
+//		myowner: 'hope'
     };
     return student;
 }
@@ -1011,7 +1066,8 @@ function setStudentFromImport(mycode, myorder, mytext, mycodeTextGroup, myrepeat
 	}
 	document.getElementById('selMycodeTextGroup').selectedIndex = mycodeTextGroup;
 	document.getElementById('myrepeated').selectedIndex = myrepeated;
-	document.getElementById('myowner').value = 'IIRF'; //HOPE
+	document.getElementById('myowner').value = 'iirf';
+//	document.getElementById('myowner').value = 'hope';
     $('#formAddUpdate').show();
 }
 
@@ -1031,19 +1087,19 @@ function showGridAndHideForms() {
 	$('#formBible').hide();
 }
 
-function showFormImport() {
-    $('#tblGrid').hide();
-    $('#formAddUpdate').hide();
-	$('#divGear').hide();
-	$('#divcontent').show();
-	$('#formBible').hide();
-}
-
 function showFormGear() {
     $('#tblGrid').hide();
     $('#formAddUpdate').hide();
 	$('#divGear').show();
 	$('#divcontent').hide();
+	$('#formBible').hide();
+}
+
+function showFormImport() {
+    $('#tblGrid').hide();
+    $('#formAddUpdate').hide();
+	$('#divGear').hide();
+	$('#divcontent').show();
 	$('#formBible').hide();
 }
 
@@ -1057,7 +1113,7 @@ function showBible() {
 
 function showForm1Form2() {
 	openLogo('logo/logo.png');
-	openImagemFundo('gallery/_fundo01.mp4');
+	openImagemFundo(localStorage.getItem('valueVideoFundo'));
 	var DataShow_Tela1 = window.open("datashowtela1.html", "datashowtela1", "top=0, width=350, height=260, left=1200, location=no, menubar=no, resizable=no, scrollbars=no, status=no, titlebar=no, toolbar=no");
 	var DataShow_Tela2 = window.open("datashowtela2.html", "datashowtela2", "top=0, width=600, height=500, left=0, location=no, menubar=no, resizable=no, scrollbars=no, status=no, titlebar=no, toolbar=no");
 }
@@ -1067,9 +1123,12 @@ function openLogo(logo) {
 }
 
 function openImagemFundo(filename) {
-	extensao = filename.toLowerCase().substring((filename.length-3), filename.length);
-	localStorage.setItem('valueVideoFundo', filename);
-	localStorage.setItem('valueImagemFundo', filename);
+    try {
+		//var extensao = filename.toLowerCase().substring((filename.length-3), filename.length);
+		localStorage.setItem('valueVideoFundo', filename);
+    } catch (ex) {
+        alert(ex.message);
+    }
 }
 
 function refreshFormData(student) {
@@ -1172,16 +1231,16 @@ function clickElem(elem) {
 	eventMouse.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
 	elem.dispatchEvent(eventMouse)
 }
-function openFile(func) {
+function openFile(func, content) {
 	readFile = function(e) {
 		var file = e.target.files[0];
 		//alert(file.name);
 		if (!file) {
-			document.getElementById('divcontent').style.display='none';
+			document.getElementById(content).style.display='none';
 			return;
 		}
 		showFormImport();
-		document.getElementById('divcontent').style.display='block';
+		document.getElementById(content).style.display='block';
 		var reader = new FileReader();
 		reader.onload = function(e
 		) {
@@ -1239,14 +1298,21 @@ function removeEspecialsCommands(valueText) {
 	 || valueText.substring(0, 4).toLowerCase() == 'edit') { //comando # no campo Search não precisa ser exibido
 		valueText = '';
 	} else {
-		valueText = valueText.replaceAll('<b style="background-color:#FFD700; color:green;">', '');
-		valueText = valueText.replaceAll('<a href="#" class="favorite" style=\"color:#000000;\">Off</a>', '');
+//alert(valueText);
+//<a href="#" class="favorite" style="color:#000000;">Off</a> <a href="#" class="edit" style="color:blue;">Edit</a>
+
 		valueText = valueText.replaceAll('<i class=\"fa fa-stop\" style=\"color:#000000;\"></i>', '');
+		valueText = valueText.replaceAll('<i class=\"fa fa-edit\" style=\"color:blue;\"></i>', '');
+		valueText = valueText.replaceAll('<b style="background-color:#EEEEEE; color:green;">', '');
+		valueText = valueText.replaceAll('<a href=\"#\" class=\"favorite\" style=\"color:#000000;\">Off</a>', '');
+		valueText = valueText.replaceAll('<a href=\"#\" class=\"edit\" style=\"color:blue; font-size:25px;\">...</a>', '');
+
 		valueText = valueText.replaceAll('</b>', '');
+		valueText = valueText.replaceAll('&nbsp;', '');
 		valueText = valueText.replaceAll('&amp;', '&');
 		
 		valueText = valueText.replaceAll('<b>', '');
-		valueText = valueText.replaceAll('<', ''); //garante que não há comandos no texto
+		valueText = valueText.replaceAll('<', ''); //garante que não sobrou comandos no texto
 	}
 	return valueText;
 }
@@ -1274,8 +1340,9 @@ function datashow(index, col, code) {
 	localStorage.setItem('valueAutor', ' ');
 
 	if (localStorage.getItem('valueArt') == '2') {
-		localStorage.setItem('valueVideoFundo', localStorage.getItem('valueText'));
-		setCookie('valueVideoFundo', localStorage.getItem('valueText'), '1');
+		setPlanoFundo();
+//		localStorage.setItem('valueVideoFundo', localStorage.getItem('valueText'));
+//		setCookie('valueVideoFundo', localStorage.getItem('valueText'), '1');
 	}
 	
 	var startElement = document.getElementById('datashow' + index);
@@ -1322,6 +1389,11 @@ function chooseChapter(content) {
 		$('#txtSearch').focus();
 		$('#txtSearch').select();	
 	}
+}
+
+function setPlanoFundo() {
+	localStorage.setItem('valueVideoFundo', localStorage.getItem('valueText'));
+	setCookie('valueVideoFundo', localStorage.getItem('valueText'), '1');
 }
 
 function desceJanela() {

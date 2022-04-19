@@ -64,30 +64,30 @@
  <body id="body" onload="callback();">
 	<video id="videofundo" loop muted ZZZautoplay ZZZcontrols style="display:'none';">
 		<p>Seu navegador não suporta video HTML5.</p>
-		<source src="gallery/_fundo01.mp4" type="video/mp4">
-		<source src="gallery/_fundo01.mp4" type="video/webm">
+		<source src="" type="video/mp4">
+		<source src="" type="video/webm">
+		<source src="" type="video/ogg">
 		<track kind="subtitles" src="nome.vtt" srclang="en">
 	</video>
-	<img src="gallery/_fundo01.png" id="imagemfundo" style="display:'none';"/>
-	<img src="logo/logo.png" id="logotipo" />
-	
+	<img src="" id="imagemfundo" style="display:'none';"/>
+	<img src="logo/logo.png" id="logotipo" style="display:'none';"/>
 	<div id="div0">
-		<textarea id="textarea0" class=textareaTop readonly></textarea>
+		<textarea id="textarea0" class=textareaTop style="display:'none';" readonly></textarea>
 	</div>
 	<div id="div1">
-		<textarea id="textareaAutor" class=textareaAutor readonly></textarea>
+		<textarea id="textareaAutor" class=textareaAutor style="display:'none';" readonly></textarea>
 	</div>
 
 <script type="text/javascript">
-/*
+/* JUST TESTS DEV
 	localStorage.setItem('valueText', 'kkk \n kkkkk \n kkkkkkkkkk');
 	localStorage.setItem('valueLogo', 'logo/logo.png');
-	localStorage.setItem('valueImagemFundo', '_fundo03.png');
 	localStorage.setItem('valueVideoFundo', '_fundo01.mp4');
 	localStorage.setItem('valueLogoBig', 'false');
 	localStorage.setItem('valueAutor', 'nome author \n nome música');
 	localStorage.setItem('valueAoVivo', 'false');
-*/
+	localStorage.setItem('valueVideoPlay', 'false');
+   JUST TESTS DEV */
 </script>
 
 <script>
@@ -108,21 +108,20 @@ window.onload = function(){
 
 	document.getElementById("textareaAutor").innerHTML = localStorage.getItem('valueAutor');
 	document.getElementById("logotipo").src = localStorage.getItem('valueLogo');
-	logoBig(localStorage.getItem('valueLogoBig'));
+	logoBig(localStorage.getItem('valueLogoBig'), localStorage.getItem('valueLogoHeightBig'), localStorage.getItem('valueLogoHeightMini'), localStorage.getItem('valueLogoLeftBigTela1'), localStorage.getItem('valueLogoLeftMini'));
 	//plano de fundo
-	document.getElementById("imagemfundo").src = localStorage.getItem('valueImagemFundo');
 	document.getElementById("videofundo").src = localStorage.getItem('valueVideoFundo');
 }
 
-function logoBig(valueLogoBig) {
+function logoBig(valueLogoBig, valueLogoHeightBig, valueLogoHeightMini, valueLogoLeftBig, valueLogoLeftMini) {
 	if (valueLogoBig == 'true') {
-		logotipo.style.height = '60%'; //tamanho do logo
-		logotipo.style.left = '30%';
+		logotipo.style.height = valueLogoHeightBig; //tamanho do logo
+		logotipo.style.left = valueLogoLeftBig;
 		logotipo.style.bottom = '100px';
 		document.getElementById("textarea0").textContent = '';
 	} else if (valueLogoBig == 'false') {
-		logotipo.style.height = '25%'; //tamanho do logo
-		logotipo.style.left = '0px';
+		logotipo.style.height = valueLogoHeightMini; //tamanho do logo
+		logotipo.style.left = valueLogoLeftMini;
 		logotipo.style.bottom = '0px'; //'100px';
 	} else {
 		logotipo.style.height = '1%'; //tamanho do logo
@@ -143,32 +142,34 @@ function callback() {
 		valueTextTemp = getCookie('valueText');
 	}
 
+	//plano de fundo
+	var valueVideoFundo = localStorage.getItem('valueVideoFundo');
+//console.log('valueVideoFundo=' + valueVideoFundo + '\n\n ');
+	var extensao = valueVideoFundo.substring(parseInt(valueVideoFundo.length-3), valueVideoFundo.length);
+	if (extensao == 'mp4' || extensao == 'webm' || extensao == 'avi') {
+		var posicao = document.getElementById("videofundo").src.indexOf(valueVideoFundo, 0);
+//console.log('posicao=' + posicao + '\n\n localStorage.getItem(valueVideoFundo)' + localStorage.getItem('valueVideoFundo') + '\n\n document.getElementById(videofundo).src=' + document.getElementById("videofundo").src );
+		if (posicao < 0) {
+			document.getElementById("videofundo").src = localStorage.getItem('valueVideoFundo');
+		}
+		document.getElementById("videofundo").style.display = 'block';
+		document.getElementById("imagemfundo").style.display = 'none';
+	} else {
+//console.log('imagem');
+		var posicao = document.getElementById("imagemfundo").src.indexOf(valueVideoFundo, 0);
+		if (posicao <= 0) {
+			document.getElementById("imagemfundo").src = localStorage.getItem('valueVideoFundo');
+		}
+		document.getElementById("imagemfundo").style.display = 'block';
+		document.getElementById("videofundo").style.display = 'none';
+	}
+	
 	// 2 = art
 	if (localStorage.getItem('valueArt') == '2') {
 		document.getElementById("textarea0").textContent = '';
 		document.getElementById("textareaAutor").innerHTML = '';
 		localStorage.setItem('valueText', '');
 		setCookie('valueText', '', '1');
-
-		//plano de fundo
-		var valueVideoFundo = localStorage.getItem('valueVideoFundo');
-		var extensao = localStorage.getItem('valueVideoFundo').substring(parseInt(localStorage.getItem('valueVideoFundo').length-3), localStorage.getItem('valueVideoFundo').length);
-		if (extensao == 'mp4' || extensao == 'webm' || extensao == 'avi') {
-			var posicao = document.getElementById("videofundo").src.indexOf(valueVideoFundo, 0);
-			if (posicao <= 0) {
-				document.getElementById("videofundo").src = localStorage.getItem('valueVideoFundo');
-			}
-			document.getElementById("videofundo").style.display = 'block';
-			document.getElementById("imagemfundo").style.display = 'none';
-		} else {
-			console.log('tipo imagem');
-			var posicao = document.getElementById("imagemfundo").src.indexOf(valueVideoFundo, 0);
-			if (posicao <= 0) {
-				document.getElementById("imagemfundo").src = localStorage.getItem('valueVideoFundo');
-			}
-			document.getElementById("imagemfundo").style.display = 'block';
-			document.getElementById("videofundo").style.display = 'none';
-		}
 	} else if (valueTextTemp.substring(0,1) == '#') { // não mostrar texto para um comando #
 		document.getElementById("textarea0").textContent = '';
 		document.getElementById("textareaAutor").innerHTML = '';
@@ -180,7 +181,7 @@ function callback() {
 	//logotipo
 	document.getElementById("logotipo").src = localStorage.getItem('valueLogo');
 	//logotipo grande
-	logoBig(localStorage.getItem('valueLogoBig'));
+	logoBig(localStorage.getItem('valueLogoBig'), localStorage.getItem('valueLogoHeightBig'), localStorage.getItem('valueLogoHeightMini'), localStorage.getItem('valueLogoLeftBigTela1'), localStorage.getItem('valueLogoLeftMini'));
 
 	setTimeout (function () {
 		//console.log ('Ei, espere meio segundo!');
